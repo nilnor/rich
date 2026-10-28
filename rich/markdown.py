@@ -517,13 +517,14 @@ class Markdown(JupyterMixin):
         markup (str): A string containing markdown.
         code_theme (str, optional): Pygments theme for code blocks. Defaults to "monokai". See https://pygments.org/styles/ for code themes.
         justify (JustifyMethod, optional): Justify value for paragraphs. Defaults to None.
-        justify_headers (JustifyMethod, optional): Justify value for headers. Defaults to None.
         style (Union[str, Style], optional): Optional style to apply to markdown.
         hyperlinks (bool, optional): Enable hyperlinks. Defaults to ``True``.
         inline_code_lexer: (str, optional): Lexer to use if inline code highlighting is
             enabled. Defaults to None.
         inline_code_theme: (Optional[str], optional): Pygments theme for inline code
             highlighting, or None for no highlighting. Defaults to None.
+        justify_headers (JustifyMethod, optional): Justify value for headers. Keyword-only.
+            Defaults to None.
     """
 
     elements: ClassVar[dict[str, type[MarkdownElement]]] = {
@@ -552,11 +553,12 @@ class Markdown(JupyterMixin):
         markup: str,
         code_theme: str = "monokai",
         justify: JustifyMethod | None = None,
-        justify_headers: JustifyMethod | None = None,
         style: str | Style = "none",
         hyperlinks: bool = True,
         inline_code_lexer: str | None = None,
         inline_code_theme: str | None = None,
+        *,
+        justify_headers: JustifyMethod | None = None,
     ) -> None:
         parser = MarkdownIt().enable("strikethrough").enable("table")
         self.markup = markup

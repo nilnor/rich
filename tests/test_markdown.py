@@ -72,6 +72,8 @@ foobar
 import io
 import re
 
+import pytest
+
 from rich.console import Console, RenderableType
 from rich.markdown import Markdown
 
@@ -196,6 +198,22 @@ def test_table_with_empty_cells() -> None:
     )
     result = len(render(table_with_empty_cells).splitlines())
     expected = len(render(complete_table).splitlines())
+    assert result == expected
+
+
+def test_inline_code_in_table_cells() -> None:
+    """Test inline code in table cells.
+
+    Regression test for https://github.com/Textualize/rich/issues/4038
+
+    """
+    markdown = Markdown(
+        "| Col |\n|---|\n| `print('hello');` |\n",
+        inline_code_theme="monokai",
+        inline_code_lexer="python",
+    )
+    result = render(markdown)
+    expected = "\n\x1b[36m                 \x1b[0m\n\x1b[36m \x1b[0m\x1b[36mCol\x1b[0m\x1b[1m            \x1b[0m\x1b[36m \x1b[0m\n\x1b[36m ─────────────── \x1b[0m\n\x1b[36m \x1b[0m\x1b[38;2;248;248;242;48;2;39;40;34mprint\x1b[0m\x1b[38;2;248;248;242;48;2;39;40;34m(\x1b[0m\x1b[38;2;230;219;116;48;2;39;40;34m'\x1b[0m\x1b[38;2;230;219;116;48;2;39;40;34mhello\x1b[0m\x1b[38;2;230;219;116;48;2;39;40;34m'\x1b[0m\x1b[38;2;248;248;242;48;2;39;40;34m)\x1b[0m\x1b[38;2;248;248;242;48;2;39;40;34m;\x1b[0m\x1b[36m \x1b[0m\n\x1b[36m                 \x1b[0m\n"
     assert result == expected
 
 
@@ -342,6 +360,27 @@ This paragraph should also be center-justified.
         "                          This paragraph should also be center-justified.                           "
         in result
     )
+
+
+def test_justify_headers_is_keyword_only() -> None:
+    """Test that adding ``justify_headers`` didn't shift existing positional arguments.
+
+    ``justify_headers`` must be keyword-only so that existing positional calls keep
+    their meaning, e.g. ``Markdown("# Hello", "monokai", None, "bold")`` still sets
+    ``style="bold"``.
+
+    Regression test for https://github.com/Textualize/rich/pull/3824
+
+    """
+    markdown = Markdown("# Hello", "monokai", None, "bold")
+    assert markdown.code_theme == "monokai"
+    assert markdown.justify is None
+    assert markdown.style == "bold"
+    assert markdown.justify_headers is None
+
+    # ``justify_headers`` cannot be passed positionally.
+    with pytest.raises(TypeError):
+        Markdown("# Hello", "monokai", None, "none", True, None, None, "left")
 
 
 if __name__ == "__main__":
